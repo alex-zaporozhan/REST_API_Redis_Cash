@@ -1,0 +1,38 @@
+# Environment / secrets
+.env
+.env.*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+
+# pytest
+.pytest_cache/
+*.cover
+.coverage
+htmlcov/
+
+# Mypy / type checking
+.mypy_cache/
+.dmypy.json
+
+# Lint / formatting
+.ruff_cache/
+
+# Logs / runtime
+*.log
+logs/
+*.pid
+*.seed
+
+# IDE / editor
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+

@@ -1,0 +1,52 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    ports:
+      - "5438:5432"
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6385:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  api:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file:
+      - .env
+    ports:
+      - "8006:8000"
+    environment:
+      PYTHONPATH: /app
+    command: sh -c "cd /app && alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"
+
+  test:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      PYTHONPATH: /app
+    command: sh -c "cd /app && alembic upgrade head && pytest -q"
