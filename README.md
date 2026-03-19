@@ -1,4 +1,4 @@
-# test_cash (Variant B: Redis caching for posts)
+# REST API for Redis testing
 
 ## Stack
 - `FastAPI` + `Pydantic`
@@ -132,74 +132,109 @@ Base URL (FastAPI): `http://localhost:8006`
 ### Bash / curl
 ```bash
 BASE_URL="http://localhost:8006"
+```
 
+```bash
 POST_PAYLOAD='{"title":"Smoke title","content":"Smoke content","is_published":false}'
+```
+
+```bash
 POST_RESP="$(curl -s -X POST "$BASE_URL/posts" \
   -H "Content-Type: application/json" \
   -d "$POST_PAYLOAD")"
+```
+
+```bash
 POST_ID="$(echo "$POST_RESP" | python -c 'import json,sys; print(json.load(sys.stdin)["id"])')"
+```
 
-# 1) GET cold miss -> fills Redis cache
+```bash
 curl -s -X GET "$BASE_URL/posts/$POST_ID"
+```
 
-# 2) PUT -> invalidates cache
+```bash
 PUT_PAYLOAD='{"title":"Updated via PUT","content":"Updated content","is_published":true}'
+```
+
+```bash
 curl -s -X PUT "$BASE_URL/posts/$POST_ID" \
   -H "Content-Type: application/json" \
   -d "$PUT_PAYLOAD"
+```
 
-# 3) PATCH -> invalidates cache
+```bash
 PATCH_PAYLOAD='{"title":"Updated via PATCH"}'
+```
+
+```bash
 curl -s -X PATCH "$BASE_URL/posts/$POST_ID" \
   -H "Content-Type: application/json" \
   -d "$PATCH_PAYLOAD"
+```
 
-# 4) DELETE -> invalidates cache
+```bash
 curl -s -o /dev/null -w "%{http_code}\n" -X DELETE "$BASE_URL/posts/$POST_ID"
+```
 
-# 5) GET after delete -> 404 (and should not be cached)
+```bash
 curl -s -X GET "$BASE_URL/posts/$POST_ID"
 ```
 
 ### PowerShell / curl.exe
 ```powershell
 $BASE_URL = "http://localhost:8006"
+```
 
+```powershell
 $postPayload = @{
   title = "Smoke title"
   content = "Smoke content"
   is_published = $false
 } | ConvertTo-Json -Compress
+```
 
+```powershell
 $postResp = curl.exe -s -X POST "$BASE_URL/posts" `
   -H "Content-Type: application/json" `
   -d $postPayload
+```
 
+```powershell
 $postId = ($postResp | ConvertFrom-Json).id
+```
 
-# 1) GET cold miss -> fills Redis cache
+```powershell
 curl.exe -s -X GET "$BASE_URL/posts/$postId"
+```
 
-# 2) PUT -> invalidates cache
+```powershell
 $putPayload = @{
   title = "Updated via PUT"
   content = "Updated content"
   is_published = $true
 } | ConvertTo-Json -Compress
+```
 
+```powershell
 curl.exe -s -X PUT "$BASE_URL/posts/$postId" `
   -H "Content-Type: application/json" `
-  -d $putPayload | Out-Host
+  -d $putPayload
+```
 
-# 3) PATCH -> invalidates cache
+```powershell
 $patchPayload = @{ title = "Updated via PATCH" } | ConvertTo-Json -Compress
+```
+
+```powershell
 curl.exe -s -X PATCH "$BASE_URL/posts/$postId" `
   -H "Content-Type: application/json" `
-  -d $patchPayload | Out-Host
+  -d $patchPayload
+```
 
-# 4) DELETE -> invalidates cache
+```powershell
 curl.exe -s -o /dev/null -w "%{http_code}`n" -X DELETE "$BASE_URL/posts/$postId"
+```
 
-# 5) GET after delete -> 404
+```powershell
 curl.exe -s -X GET "$BASE_URL/posts/$postId"
 ```
